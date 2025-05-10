@@ -38,13 +38,13 @@ export default function App() {
         onChangeText={(text) => setTask(text)}
       />
       <Button title="Add Task" onPress={onSubmitToDO}/>
-      <div>
-        <ul>
-        {tasks.map((List) => (
-          <li>{List.data}</li>
+      <View>
+        <View>
+        {tasks.map((List, index) => (
+          <Text key= {index}>- {List.data}</Text>
         ))}
-        </ul>
-      </div>
+        </View>
+      </View>
     </View>
   );
 }
