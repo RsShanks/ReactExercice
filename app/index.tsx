@@ -1,31 +1,50 @@
-import React, { useState } from 'react';
-import { Button, FlatList, StyleSheet, Text, TextInput, View } from 'react-native';
+import { addDoc, collection, getDocs } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { db } from './firebase-config';
 
 export default function App() {
-  const [task, setTask] = useState('');
-  const [tasks, setTasks] = useState<{ id: string; text: string }[]>([]);
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [task, setTask] = useState("");
+  
+  const toDoListCollection =collection(db, "List");
 
-  const handleAddTask = () => {
-    if (task.trim() === '') return;
-    setTasks([...tasks, { id: Date.now().toString(), text: task }]);
-    setTask('');
-  };
+  useEffect(() => {
+    const getToDoList = async ()=> {
+      try{
+        const data = await getDocs(toDoListCollection);
+        const filteredData = data.docs.map((doc) =>  ({...doc.data(), id: doc.id}));
+        //console.log(data);
+        setTasks(filteredData);
+      } catch (err)
+      {
+       console.error(err);
+      }
+    }
+
+    getToDoList();
+  }, []);
+
+  const onSubmitToDO = async ()=> {
+    await addDoc(toDoListCollection, {data: task});
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Ma To-Do List</Text>
+      <Text style={styles.title}>My To-Do List</Text>
       <TextInput
         style={styles.input}
-        placeholder="Ajouter une tâche"
-        value={task}
-        onChangeText={setTask}
+        placeholder="Add a task"
+        onChangeText={(text) => setTask(text)}
       />
-      <Button title="Ajouter" onPress={handleAddTask} />
-      <FlatList
-        data={tasks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <Text style={styles.item}>{item.text}</Text>}
-      />
+      <Button title="Add Task" onPress={onSubmitToDO}/>
+      <div>
+        <ul>
+        {tasks.map((List) => (
+          <li>{List.data}</li>
+        ))}
+        </ul>
+      </div>
     </View>
   );
 }
