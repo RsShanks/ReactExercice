@@ -1,4 +1,4 @@
-import { addDoc, collection, getDocs } from 'firebase/firestore';
+import { addDoc, collection, onSnapshot, query } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
 import { db } from './firebase-config';
@@ -12,10 +12,12 @@ export default function App() {
   useEffect(() => {
     const getToDoList = async ()=> {
       try{
-        const data = await getDocs(toDoListCollection);
-        const filteredData = data.docs.map((doc) =>  ({...doc.data(), id: doc.id}));
-        //console.log(data);
-        setTasks(filteredData);
+        const data = query(toDoListCollection);
+        const unsubscribe = onSnapshot(data, (snapshot) => {
+          setTasks(snapshot.docs.map((doc) =>  ({...doc.data(), id: doc.id})));
+        });
+
+        return () => unsubscribe();
       } catch (err)
       {
        console.error(err);
